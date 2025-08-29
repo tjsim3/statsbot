@@ -176,6 +176,35 @@ class StatsBot(commands.Cog):
 
     # ---------------- Spellkeeper Commands ---------------- #
 
+    @commands.command(name="listplayers")
+    @has_role("spellkeeper")  # Only high mage can use this
+    async def list_players(self, ctx):
+        """
+        Lists all uploaded players with their team and training role.
+        Usage: <listplayers
+        """
+        if not player_stats:
+            await ctx.send("⚠ No players have been uploaded yet.")
+            return
+    
+        # Build the list message
+        lines = ["**Uploaded Players:**"]
+        for pid, stats in player_stats.items():
+            member = ctx.guild.get_member(int(pid))
+            name = member.display_name if member else f"Unknown ({pid})"
+            team = stats.get("team", "None")
+            role = stats.get("training_level", "None")
+            lines.append(f"- {name} | Team: {team} | Role: {role}")
+    
+        # Send in chunks if too long
+        message = "\n".join(lines)
+        if len(message) > 2000:  # Discord message limit
+            for chunk_start in range(0, len(message), 1900):
+                await ctx.send("```\n" + message[chunk_start:chunk_start+1900] + "\n```")
+        else:
+            await ctx.send("```\n" + message + "\n```")
+
+
     @commands.command(name="ping")
     async def ping(self, ctx):
         """Shows bot latency"""
