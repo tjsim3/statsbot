@@ -177,7 +177,7 @@ class StatsBot(commands.Cog):
     # ---------------- Spellkeeper Commands ---------------- #
 
     @commands.command(name="listplayers")
-    @has_role("spellkeeper")  # Only high mage can use this
+    @has_role("Spellkeeper")  # Only high mage can use this
     async def list_players(self, ctx):
         """
         Lists all uploaded players with their team and training role.
@@ -212,7 +212,7 @@ class StatsBot(commands.Cog):
         await ctx.send(f"🏓 Pong! Latency: {latency}ms")
 
     @commands.command(name="settimezone")
-    @has_role("spellkeeper")
+    @has_role("Spellkeeper")
     async def set_timezone(self, ctx, member: discord.Member, tz_role: str):
         """Assigns a timezone role to a player."""
         timezones[str(member.id)] = tz_role
@@ -220,14 +220,14 @@ class StatsBot(commands.Cog):
         await ctx.send(f"Timezone for {member.display_name} set to {tz_role}.")
 
     @commands.command(name="individualperf")
-    @has_role("spellkeeper")
+    @has_role("Spellkeeper")
     async def individual_perf(self, ctx, member: discord.Member):
         """Checks individual performance."""
         stats = player_stats.get(str(member.id), {"wins": 0, "losses": 0})
         await ctx.send(f"{member.display_name} - Wins: {stats['wins']} | Losses: {stats['losses']}")
 
     @commands.command(name="teamperf")
-    @has_role("spellkeeper")
+    @has_role("Spellkeeper")
     async def team_perf(self, ctx, team: str):
         """Checks team performance."""
         stats = team_stats.get(team, {"wins": 0, "losses": 0})
