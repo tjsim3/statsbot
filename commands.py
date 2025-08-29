@@ -3,6 +3,8 @@ from discord.ext import commands
 from discord.ext.commands import has_role
 import json
 import os
+import time
+
 
 # ---------------- Persistence Helpers ---------------- #
 DATA_FILE = "stats.json"
@@ -99,6 +101,12 @@ class StatsBot(commands.Cog):
 
     # ---------------- Spellkeeper Commands ---------------- #
 
+    @commands.command(name="ping")
+    async def ping(self, ctx):
+        """Shows bot latency"""
+        latency = round(self.bot.latency * 1000)  # convert to ms
+        await ctx.send(f"🏓 Pong! Latency: {latency}ms")
+
     @commands.command(name="settimezone")
     @has_role("spellkeeper")
     async def set_timezone(self, ctx, member: discord.Member, tz_role: str):
@@ -146,6 +154,21 @@ class StatsBot(commands.Cog):
                         await message.channel.send(f"{member.display_name} has been initiated as Apprentice!")
                     else:
                         await message.channel.send("No Apprentice role found in this server.")
+        await self.bot.process_commands(message)
+
+    @commands.Cog.listener()
+    async def on_command_error(self, ctx, error):
+        if isinstance(error, commands.MissingRequiredArgument):
+            await ctx.send(f"⚠ Missing argument: {error.param}")
+        elif isinstance(error, commands.CommandNotFound):
+            await ctx.send(f"❌ Unknown command. Try `<ping` or another valid command.")
+        elif isinstance(error, commands.MissingPermissions):
+            await ctx.send("❌ You do not have permission to use this command.")
+        elif isinstance(error, commands.BotMissingPermissions):
+            await ctx.send("❌ I don't have permission to do that.")
+        else:
+            await ctx.send(f"❌ An unexpected error occurred: `{error}`")
+            raise error  # optional: raise for logging in console
 
 async def setup(bot):
     await bot.add_cog(StatsBot(bot))
