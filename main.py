@@ -22,4 +22,5 @@ async def on_ready():
     print("------")
 
 # Run bot (expects DISCORD_TOKEN environment variable)
-bot.run(os.getenv("DISCORD_TOKEN"))
+TOKEN = os.getenv("DISCORD_TOKEN")
+bot.run(TOKEN)
