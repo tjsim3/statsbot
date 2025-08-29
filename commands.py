@@ -37,6 +37,44 @@ class StatsBot(commands.Cog):
         self.bot = bot
 
     # ---------------- High Mage Commands ---------------- #
+    @commands.command(name="editplayer")
+    @has_role("high mage")
+    async def edit_player(self, ctx, member: discord.Member, team: str = None, training: str = None):
+        """
+        Edit a player's team and/or training role.
+        Usage: <editplayer @player [team] [training]
+        """
+        pid = str(member.id)
+        if pid not in player_stats:
+            await ctx.send(f"❌ {member.display_name} is not uploaded. Use `<upload` first.")
+            return
+    
+        if team:
+            player_stats[pid]["team"] = team
+    
+        if training:
+            training = training.capitalize()
+            if training not in TRAINING_ROLES:
+                await ctx.send("❌ Invalid training role. Choose Apprentice, Wizard, or Sage.")
+                return
+    
+            # Remove old roles
+            for role_name in TRAINING_ROLES:
+                role = discord.utils.get(ctx.guild.roles, name=role_name)
+                if role in member.roles:
+                    await member.remove_roles(role)
+    
+            # Add new training role
+            new_role = discord.utils.get(ctx.guild.roles, name=training)
+            if new_role:
+                await member.add_roles(new_role)
+                player_stats[pid]["training_level"] = training
+    
+        save_data()
+        await ctx.send(f"✅ Updated {member.display_name}'s info." +
+                       (f" Team: {team}" if team else "") +
+                       (f", Training: {training}" if training else ""))
+
     @commands.command(name="upload")
     @has_role("High Mage")  # Only High Mage can add players
     async def upload(self, ctx, member: discord.Member):
@@ -177,32 +215,33 @@ class StatsBot(commands.Cog):
     # ---------------- Spellkeeper Commands ---------------- #
 
     @commands.command(name="listplayers")
-    @has_role("Spellkeeper")  # Only High Mage can use this
+    @has_role("high mage")
     async def list_players(self, ctx):
         """
-        Lists all uploaded players with their team and training role.
+        Lists all uploaded players with their team, training role, and win/loss record.
         Usage: <listplayers
         """
         if not player_stats:
             await ctx.send("⚠ No players have been uploaded yet.")
             return
     
-        # Build the list message
         lines = ["**Uploaded Players:**"]
         for pid, stats in player_stats.items():
             member = ctx.guild.get_member(int(pid))
             name = member.display_name if member else f"Unknown ({pid})"
             team = stats.get("team", "None")
-            role = stats.get("training_level", "None")
-            lines.append(f"- {name} | Team: {team} | Role: {role}")
+            training = stats.get("training_level", "None")
+            wins = stats.get("wins", 0)
+            losses = stats.get("losses", 0)
+            lines.append(f"- {name} | Team: {team} | Training: {training} | W/L: {wins}/{losses}")
     
-        # Send in chunks if too long
         message = "\n".join(lines)
-        if len(message) > 2000:  # Discord message limit
+        if len(message) > 2000:  # split if too long
             for chunk_start in range(0, len(message), 1900):
                 await ctx.send("```\n" + message[chunk_start:chunk_start+1900] + "\n```")
         else:
             await ctx.send("```\n" + message + "\n```")
+
 
 
     @commands.command(name="ping")
