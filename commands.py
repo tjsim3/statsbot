@@ -37,7 +37,82 @@ class StatsBot(commands.Cog):
         self.bot = bot
 
     # ---------------- High Mage Commands ---------------- #
+    @commands.command(name="upload")
+    @has_role("high mage")  # Only high mage can add players
+    async def upload(self, ctx, member: discord.Member):
+        """
+        Upload a new player to the stats system.
+        Usage: <upload @player
+        """
+        pid = str(member.id)
+        if pid in player_stats:
+            await ctx.send(f"⚠ {member.display_name} is already uploaded.")
+            return
+    
+        # Initialize player stats
+        player_stats[pid] = {
+            "wins": 0,
+            "losses": 0,
+            "team": "None",
+            "training_level": "None"
+        }
+        save_data()
+        await ctx.send(f"✅ {member.display_name} has been uploaded to the stats system.")
 
+    @commands.command(name="record")
+    @has_role("high mage")  # Only high mage can record matches
+    async def record(self, ctx, result: str, player: discord.Member, *teammates: discord.Member):
+        """
+        Records a win or loss for a player and optionally their team.
+        Usage: <record w @player [@teammate1 @teammate2]
+               <record l @player [@teammate1 @teammate2]
+        Only players uploaded with <upload can be recorded.
+        """
+    
+        result = result.lower()
+        if result not in ["w", "l"]:
+            await ctx.send("❌ Invalid result. Use 'w' for win or 'l' for loss.")
+            return
+    
+        # Combine player and teammates
+        team_members = [player] + list(teammates)
+    
+        # Check that all players are uploaded
+        for m in team_members:
+            if str(m.id) not in player_stats:
+                await ctx.send(f"❌ {m.display_name} is not uploaded. Use `<upload` first.")
+                return
+    
+        # Update individual stats
+        for m in team_members:
+            pid = str(m.id)
+            if result == "w":
+                player_stats[pid]["wins"] += 1
+            else:
+                player_stats[pid]["losses"] += 1
+    
+        # Construct team name from members
+        team_name = "-".join([m.display_name for m in team_members])
+    
+        # Update team stats
+        team_stats.setdefault(team_name, {"wins": 0, "losses": 0, "games_played": 0})
+        if result == "w":
+            team_stats[team_name]["wins"] += 1
+        else:
+            team_stats[team_name]["losses"] += 1
+        team_stats[team_name]["games_played"] += 1
+    
+        # Update each member's team info
+        for m in team_members:
+            player_stats[str(m.id)]["team"] = team_name
+    
+        # Save changes
+        save_data()
+    
+        # Respond in Discord
+        await ctx.send(f"✅ Recorded {'win' if result=='w' else 'loss'} for {', '.join([m.display_name for m in team_members])} (Team: {team_name}).")
+
+    
     @commands.command(name="winrate")
     @has_role("high mage")
     async def winrate(self, ctx, member: discord.Member = None):
