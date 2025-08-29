@@ -13,11 +13,18 @@ async def on_ready():
     print(f"✅ Logged in as {bot.user} (ID: {bot.user.id})")
     print("------")
 
-# Load commands cog
-async def load_cogs():
-    await bot.load_extension("commands")  # this loads commands.py as a cog
+# Properly load the commands cog synchronously before bot.run()
+async def setup():
+    await bot.load_extension("commands")  # loads commands.py as a Cog
 
-bot.loop.create_task(load_cogs())
-
+# Use Discord token from Railway environment variables
 TOKEN = os.getenv("DISCORD_TOKEN")
-bot.run(TOKEN)
+
+# Run bot with the async setup
+async def main():
+    async with bot:
+        await setup()
+        await bot.start(TOKEN)
+
+import asyncio
+asyncio.run(main())
