@@ -135,7 +135,12 @@ class StatsBot(commands.Cog):
     async def on_message(self, message):
         if message.author.bot:
             return
-
+    
+        # Ignore normal commands to prevent double processing
+        if message.content.startswith(self.bot.command_prefix):
+            return
+    
+        # Handle %initiate only
         if message.content.startswith("%initiate"):
             parts = message.content.split()
             if len(parts) >= 3:
@@ -147,14 +152,13 @@ class StatsBot(commands.Cog):
                             role = discord.utils.get(message.guild.roles, name=role_name)
                             if role in member.roles:
                                 await member.remove_roles(role)
-
                         await member.add_roles(apprentice_role)
                         player_stats.setdefault(str(member.id), {})["training_level"] = "Apprentice"
                         save_data()
                         await message.channel.send(f"{member.display_name} has been initiated as Apprentice!")
                     else:
                         await message.channel.send("No Apprentice role found in this server.")
-        await self.bot.process_commands(message)
+
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
