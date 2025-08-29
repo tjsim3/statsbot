@@ -38,7 +38,7 @@ class StatsBot(commands.Cog):
 
     # ---------------- High Mage Commands ---------------- #
     @commands.command(name="upload")
-    @has_role("high mage")  # Only high mage can add players
+    @has_role("High Mage")  # Only High Mage can add players
     async def upload(self, ctx, member: discord.Member):
         """
         Upload a new player to the stats system.
@@ -60,7 +60,7 @@ class StatsBot(commands.Cog):
         await ctx.send(f"✅ {member.display_name} has been uploaded to the stats system.")
 
     @commands.command(name="record")
-    @has_role("high mage")  # Only high mage can record matches
+    @has_role("High Mage")  # Only High Mage can record matches
     async def record(self, ctx, result: str, player: discord.Member, *teammates: discord.Member):
         """
         Records a win or loss for a player and optionally their team.
@@ -114,7 +114,7 @@ class StatsBot(commands.Cog):
 
     
     @commands.command(name="winrate")
-    @has_role("high mage")
+    @has_role("High Mage")
     async def winrate(self, ctx, member: discord.Member = None):
         """Displays winrate of an individual."""
         if member:
@@ -126,26 +126,26 @@ class StatsBot(commands.Cog):
             await ctx.send("Provide a player to check their winrate.")
 
     @commands.command(name="matchups")
-    @has_role("high mage")
+    @has_role("High Mage")
     async def matchups(self, ctx, team: str):
         """Suggests best matchups for the season (placeholder)."""
         await ctx.send(f"Generated matchups for {team}: 4x 3v3 and 8x 2v2.")
 
     @commands.command(name="activity")
-    @has_role("high mage")
+    @has_role("High Mage")
     async def activity(self, ctx, member: discord.Member = None):
         """Tracks activity of individuals (placeholder)."""
         await ctx.send(f"{member.display_name if member else 'Player'} has been active X days.")
 
     @commands.command(name="teamperformance")
-    @has_role("high mage")
+    @has_role("High Mage")
     async def team_performance(self, ctx, team: str):
         """Tracks performance of a team."""
         stats = team_stats.get(team, {"wins": 0, "losses": 0})
         await ctx.send(f"{team} - Wins: {stats['wins']} | Losses: {stats['losses']}")
 
     @commands.command(name="compare")
-    @has_role("high mage")
+    @has_role("High Mage")
     async def compare(self, ctx, member: discord.Member):
         """Compares individual performance to team performance."""
         player = player_stats.get(str(member.id), {"wins": 0, "losses": 0, "team": "None"})
@@ -153,7 +153,7 @@ class StatsBot(commands.Cog):
         await ctx.send(f"{member.display_name} ({player['wins']}W/{player['losses']}L) vs Team {player.get('team', 'None')} ({team['wins']}W/{team['losses']}L)")
 
     @commands.command(name="settraining")
-    @has_role("high mage")
+    @has_role("High Mage")
     async def set_training(self, ctx, member: discord.Member, level: str):
         """Sets training level and updates roles."""
         if level.capitalize() not in TRAINING_ROLES:
@@ -177,7 +177,7 @@ class StatsBot(commands.Cog):
     # ---------------- Spellkeeper Commands ---------------- #
 
     @commands.command(name="listplayers")
-    @has_role("Spellkeeper")  # Only high mage can use this
+    @has_role("Spellkeeper")  # Only High Mage can use this
     async def list_players(self, ctx):
         """
         Lists all uploaded players with their team and training role.
