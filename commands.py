@@ -162,6 +162,10 @@ class StatsBot(commands.Cog):
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
+        # Only respond if the message starts with your command prefix
+        if not ctx.message.content.startswith("<"):
+            return
+    
         if isinstance(error, commands.MissingRequiredArgument):
             await ctx.send(f"⚠ Missing argument: {error.param}")
         elif isinstance(error, commands.CommandNotFound):
@@ -172,7 +176,8 @@ class StatsBot(commands.Cog):
             await ctx.send("❌ I don't have permission to do that.")
         else:
             await ctx.send(f"❌ An unexpected error occurred: `{error}`")
-            raise error  # optional: raise for logging in console
+            raise error  # optional: log full traceback
+
 
 async def setup(bot):
     await bot.add_cog(StatsBot(bot))
