@@ -59,7 +59,7 @@ class Player:
 
 #---------------------------BOT COMMANDS--------------------------------#
 @commands.command()
-async def ping()
+async def ping(ctx):
     await ctx.send("Pong")
 
 # ------------- Add Team Command ------------- #
