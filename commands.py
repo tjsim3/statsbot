@@ -150,3 +150,8 @@ async def playerstats(ctx, user: discord.Member):
     win_rate = (wins / (wins + losses) * 100) if (wins + losses) > 0 else 0
 
     await ctx.send(f"{user.display_name} | Team: {p['team']} | Level: {level_name} | W/L: {wins}-{losses} | Win%: {win_rate:.1f}%")
+
+async def setup(bot):
+    bot.add_command(addteam)
+    bot.add_command(addplayer)
+    bot.add_command(ping) 
