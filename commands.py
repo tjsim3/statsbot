@@ -58,6 +58,9 @@ class Player:
         return f"<Player {self.username}: {self.wins}-{self.losses}, {self.win_percent():.1f}% WR>"
 
 #---------------------------BOT COMMANDS--------------------------------#
+@commands.command()
+async def ping()
+    await ctx.send("Pong")
 
 # ------------- Add Team Command ------------- #
 @commands.command()
