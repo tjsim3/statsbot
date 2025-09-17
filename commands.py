@@ -197,6 +197,60 @@ async def playerstats(ctx, user: discord.Member):
 
     await ctx.send(embed=embed)
 
+# ------------- Players Command --------------------- #
+@commands.command(name="players")
+async def players(ctx):
+    if not player_stats:
+        await ctx.send("No players found!")
+        return
+
+    embed = discord.Embed(
+        title="🏅 Player Rankings by Winrate",
+        color=0xffd700  # gold
+    )
+
+    players_with_rates = []
+    for player_id, record in player_stats.items():
+        wins = record.get("wins", 0)
+        losses = record.get("losses", 0)
+        total_games = wins + losses
+        win_rate = (wins / total_games) * 100 if total_games > 0 else 0.0
+        players_with_rates.append((record["username"], win_rate, wins, losses))
+    players_with_rates.sort(key=lambda x: x[1], reverse=True)
+    for username, win_rate, wins, losses in players_with_rates:
+        embed.add_field(
+            name=username,
+            value=f"Record: {wins}-{losses} | 🏆 {win_rate:.1f}%",
+            inline=False
+        )
+
+    await ctx.send(embed=embed)
+
+
+# ------------- Teams Command --------------------- #
+@commands.command(name="teams")
+async def teams(ctx):
+    if not team_stats:
+        await ctx.send("No teams have been created yet!")
+        return
+
+    embed = discord.Embed(
+        title="📋 Teams (Most Recent First)",
+        color=0x1abc9c  # teal
+    )
+    team_list = list(team_stats.items())[::-1]
+
+    for team_name, data in team_list:
+        wins = data.get("wins", 0)
+        losses = data.get("losses", 0)
+        embed.add_field(
+            name=team_name,
+            value=f"Record: {wins}-{losses}, Members: {len(data['members'])}",
+            inline=False
+        )
+
+    await ctx.send(embed=embed)
+
 # -------------- Setup Commands -------------------- #
 async def setup(bot):
     bot.add_command(ping) 
@@ -204,3 +258,5 @@ async def setup(bot):
     bot.add_command(addplayer)
     bot.add_command(teamstats)
     bot.add_command(playerstats)
+    bot.add_command(teams)
+    bot.add_command(players)
