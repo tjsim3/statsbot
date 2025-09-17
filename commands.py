@@ -134,6 +134,33 @@ async def addplayer(ctx, user: discord.Member, level: str = None, team: str = No
 
     await ctx.send(f"{user.display_name} added to {team_name} as {level_name}!")
 
+# ------------- Team Stats Command --------------- #
+@commands.command()
+async def teamstats(ctx, team: str)
+    if team not in team_stats
+        await ctx.send(f"Team {team_name} does not exist!")
+        return
+    embed = discord.Embed
+        title=f"Displaying Team {team}"
+        color = 0x00ffff  #cyan
+    for member_id in team_stats[team]["members"]:
+        player = player_stats.get(member_id)
+        if not player:
+            continue
+        wins = player["wins"]
+        losses = player["losses"]
+        total = wins + losses
+        win_rate = (wins / total * 100) if total > 0 else 0
+    
+        embed.add_field(
+            name=player["username"], 
+            value=f"Win Rate: {win_rate:.1f}%",
+            inline=False
+        )
+    
+    await ctx.send(embed=embed)
+    
+
 # ------------- Player Stats Command ------------- #
 @commands.command()
 async def playerstats(ctx, user: discord.Member):
@@ -149,9 +176,22 @@ async def playerstats(ctx, user: discord.Member):
     level_name = TRAINING_ROLES[level_index]
     win_rate = (wins / (wins + losses) * 100) if (wins + losses) > 0 else 0
 
-    await ctx.send(f"{user.display_name} | Team: {p['team']} | Level: {level_name} | W/L: {wins}-{losses} | Win%: {win_rate:.1f}%")
+        embed = discord.Embed(
+            title = f"📊 Stats for {user.display_name}",
+            color = 0x3498db  #blue
+        )
+        embed.add_field(name="Team", value = p["team"], inline=True)
+        embed.add_field(name="Level", value = level_name, inline=True)
+        embed.add_field(name="Record", value = f"{wins}-{losses}", inline=True)
+        embed.add_field(name="Win Rate", value = f"{win_rate:.1f}%", inline=True)
+        await ctx.send(embed=embed)
 
+
+
+# -------------- Setup Commands -------------------- #
 async def setup(bot):
+    bot.add_command(ping) 
     bot.add_command(addteam)
     bot.add_command(addplayer)
-    bot.add_command(ping) 
+    bot.add_command(teamstats)
+    bot.add_command(playerstats)
