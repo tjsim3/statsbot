@@ -138,41 +138,38 @@ async def addplayer(ctx, user: discord.Member, level: str = None, team: str = No
 @commands.command()
 async def teamstats(ctx, team: str):
     if team not in team_stats:
-        await ctx.send(f"Team {team_name} does not exist!")
+        await ctx.send(f"Team {team} does not exist!")
         return
-    embed = discord.Embed
-        title=f"Displaying Team {team}"
-        color = 0x00ffff  #cyan
-    members = team_stats[team]
-    players_with_wr = []
-    for player, record in members.items():
+
+    embed = discord.Embed(
+        title=f"Displaying Team {team}",
+        color=0x00ffff  # cyan
+    )
+
+    members = team_stats[team]["members"]  # list of player IDs
+    players_with_rates = []
+
+    for player_id in members:
+        record = player_stats.get(player_id, {"wins": 0, "losses": 0, "username": "Unknown"})
         wins = record.get("wins", 0)
         losses = record.get("losses", 0)
         total_games = wins + losses
+        win_rate = (wins / total_games) * 100 if total_games > 0 else 0.0
 
-        if total_games > 0:
-            win_rate = (wins / total_games) * 100
-        else:
-            win_rate = 0.0
+        players_with_rates.append((record["username"], win_rate))
 
-        players_with_rates.append((player, win_rate))
-        players_with_rates.sort(key=lambda x: x[1], reverse=True)
-    
-    for player, win_rate in players_with_rates:
+    # Sort by winrate descending
+    players_with_rates.sort(key=lambda x: x[1], reverse=True)
+
+    for username, win_rate in players_with_rates:
         embed.add_field(
-            name=player,
+            name=username,
             value=f"🏆 {win_rate:.1f}%",
             inline=False
         )
-    
-        embed.add_field(
-            name=player["username"], 
-            value=f"Win Rate: {win_rate:.1f}%",
-            inline=False
-        )
-    
+
     await ctx.send(embed=embed)
-    
+
 
 # ------------- Player Stats Command ------------- #
 @commands.command()
@@ -189,17 +186,16 @@ async def playerstats(ctx, user: discord.Member):
     level_name = TRAINING_ROLES[level_index]
     win_rate = (wins / (wins + losses) * 100) if (wins + losses) > 0 else 0
 
-        embed = discord.Embed(
-            title = f"📊 Stats for {user.display_name}",
-            color = 0x3498db  #blue
-        )
-        embed.add_field(name="Team", value = p["team"], inline=True)
-        embed.add_field(name="Level", value = level_name, inline=True)
-        embed.add_field(name="Record", value = f"{wins}-{losses}", inline=True)
-        embed.add_field(name="Win Rate", value = f"{win_rate:.1f}%", inline=True)
-        await ctx.send(embed=embed)
+    embed = discord.Embed(
+        title=f"📊 Stats for {user.display_name}",
+        color=0x3498db  # blue
+    )
+    embed.add_field(name="Team", value=p["team"], inline=True)
+    embed.add_field(name="Level", value=level_name, inline=True)
+    embed.add_field(name="Record", value=f"{wins}-{losses}", inline=True)
+    embed.add_field(name="Win Rate", value=f"{win_rate:.1f}%", inline=True)
 
-
+    await ctx.send(embed=embed)
 
 # -------------- Setup Commands -------------------- #
 async def setup(bot):
