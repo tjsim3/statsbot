@@ -136,21 +136,34 @@ async def addplayer(ctx, user: discord.Member, level: str = None, team: str = No
 
 # ------------- Team Stats Command --------------- #
 @commands.command()
-async def teamstats(ctx, team: str)
-    if team not in team_stats
+async def teamstats(ctx, team: str):
+    if team not in team_stats:
         await ctx.send(f"Team {team_name} does not exist!")
         return
     embed = discord.Embed
         title=f"Displaying Team {team}"
         color = 0x00ffff  #cyan
-    for member_id in team_stats[team]["members"]:
-        player = player_stats.get(member_id)
-        if not player:
-            continue
-        wins = player["wins"]
-        losses = player["losses"]
-        total = wins + losses
-        win_rate = (wins / total * 100) if total > 0 else 0
+    members = team_stats[team]
+    players_with_wr = []
+    for player, record in members.items():
+        wins = record.get("wins", 0)
+        losses = record.get("losses", 0)
+        total_games = wins + losses
+
+        if total_games > 0:
+            win_rate = (wins / total_games) * 100
+        else:
+            win_rate = 0.0
+
+        players_with_rates.append((player, win_rate))
+        players_with_rates.sort(key=lambda x: x[1], reverse=True)
+    
+    for player, win_rate in players_with_rates:
+        embed.add_field(
+            name=player,
+            value=f"🏆 {win_rate:.1f}%",
+            inline=False
+        )
     
         embed.add_field(
             name=player["username"], 
