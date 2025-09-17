@@ -80,8 +80,8 @@ async def addteam(ctx, team_name: str, role_name: str):
         "losses": 0,
         "role": role_name   # store role name as string
     }
-    save_data()
     await ctx.send(f"Team {team_name} created successfully!")
+    save_data()
 
 # ------------- Add Player Command ------------- #
 @commands.command()
@@ -133,6 +133,7 @@ async def addplayer(ctx, user: discord.Member, level: str = None, team: str = No
     print(player_obj)
 
     await ctx.send(f"{user.display_name} added to {team_name} as {level_name}!")
+    save_data()
 
 # ------------- Team Stats Command --------------- #
 @commands.command()
@@ -169,6 +170,7 @@ async def teamstats(ctx, team: str):
         )
 
     await ctx.send(embed=embed)
+    save_data()
 
 
 # ------------- Player Stats Command ------------- #
@@ -196,6 +198,7 @@ async def playerstats(ctx, user: discord.Member):
     embed.add_field(name="Win Rate", value=f"{win_rate:.1f}%", inline=True)
 
     await ctx.send(embed=embed)
+    save_data()
 
 # ------------- Players Command --------------------- #
 @commands.command(name="players")
@@ -225,6 +228,7 @@ async def players(ctx):
         )
 
     await ctx.send(embed=embed)
+    save_data()
 
 
 # ------------- Teams Command --------------------- #
@@ -250,6 +254,7 @@ async def teams(ctx):
         )
 
     await ctx.send(embed=embed)
+    save_data()
 
 # -------------- Setup Commands -------------------- #
 async def setup(bot):
