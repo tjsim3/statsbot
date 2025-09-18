@@ -29,6 +29,15 @@ player_stats = _data.get("players", {})
 team_stats = _data.get("TEAMS", {})           
 training_levels = _data.get("training_levels", {})
 
+#--------------Other Helpers--------------#
+def find_player_by_name(name: str):
+    matches = []
+    for player_id, record in player_stats.items():
+        username = record["username"].lower()
+        if name.lower() in username:
+            matches.append((player_id, record))
+    return matches
+
 #---------------------------Variables-----------------------------------#
 TRAINING_ROLES = ["Apprentice", "Wizard", "Sage"]
 
@@ -83,9 +92,35 @@ async def addteam(ctx, team_name: str, role_name: str):
     await ctx.send(f"Team {team_name} created successfully!")
     save_data()
 
+# ------------ Delete Team Command ------------- #
+@commands.command()
+async def deleteteam(ctx, team_name: str):
+    if team_name not in team_stats:
+        await ctx.send(f"Team {team_name} does not exist!")
+        return
+
+    # Remove team from all players
+    for player_id in team_stats[team_name]["members"]:
+        if player_id in player_stats:
+            player_stats[player_id]["team"] = None
+
+    del team_stats[team_name]
+    await ctx.send(f"🗑️ Team {team_name} deleted successfully!")
+    save_data()
+
 # ------------- Add Player Command ------------- #
 @commands.command()
-async def addplayer(ctx, user: discord.Member, level: str = None, team: str = None):
+async def addplayer(ctx, username: str, level: str = None, team: str = None):
+    matches = [m for m in ctx.guild.members if username.lower() in m.name.lower()]
+    if not matches:
+        await ctx.send(f"No user found matching '{username}'.")
+        return
+    if len(matches) > 1:
+        names = ", ".join(m.name for m in matches)
+        await ctx.send(f"Multiple users found: {names}. Please be more specific.")
+        return
+
+    user = matches[0]
     player_id = str(user.id)
 
     for t_name, data in team_stats.items():
@@ -127,13 +162,65 @@ async def addplayer(ctx, user: discord.Member, level: str = None, team: str = No
         "losses": 0,
         "team": team_name
     }
-    save_data()
-
-    player_obj = Player(user.name)
-    print(player_obj)
 
     await ctx.send(f"{user.display_name} added to {team_name} as {level_name}!")
     save_data()
+
+# ------------- Edit Player Command -------------- #
+@commands.command()
+async def editplayer(ctx, username: str, wins: int = None, losses: int = None, team: str = None):
+    matches = find_player_by_name(username)
+    if not matches:
+        await ctx.send(f"No player found matching '{username}'.")
+        return
+    if len(matches) > 1:
+        names = ", ".join(r["username"] for _, r in matches)
+        await ctx.send(f"Multiple players found: {names}. Please be more specific.")
+        return
+
+    player_id, record = matches[0]
+    if wins is not None:
+        record["wins"] = wins
+    if losses is not None:
+        record["losses"] = losses
+    if team is not None:
+        if team not in team_stats:
+            await ctx.send(f"Team {team} does not exist!")
+            return
+        # Remove from old team
+        old_team = record["team"]
+        if player_id in team_stats.get(old_team, {}).get("members", []):
+            team_stats[old_team]["members"].remove(player_id)
+        # Add to new team
+        team_stats[team]["members"].append(player_id)
+        record["team"] = team
+
+    await ctx.send(f"✅ {record['username']} updated successfully!")
+    save_data()
+
+
+# ------------- Delete Player Command ------------ #
+@commands.command()
+async def deleteplayer(ctx, username: str):
+    matches = find_player_by_name(username)
+    if not matches:
+        await ctx.send(f"No player found matching '{username}'.")
+        return
+    if len(matches) > 1:
+        names = ", ".join(r["username"] for _, r in matches)
+        await ctx.send(f"Multiple players found: {names}. Please be more specific.")
+        return
+
+    player_id, record = matches[0]
+    team_name = record["team"]
+    if player_id in team_stats.get(team_name, {}).get("members", []):
+        team_stats[team_name]["members"].remove(player_id)
+    player_stats.pop(player_id, None)
+    training_levels.pop(player_id, None)
+
+    await ctx.send(f"🗑️ Player {record['username']} deleted successfully!")
+    save_data()
+
 
 # ------------- Team Stats Command --------------- #
 @commands.command()
@@ -175,30 +262,33 @@ async def teamstats(ctx, team: str):
 
 # ------------- Player Stats Command ------------- #
 @commands.command()
-async def playerstats(ctx, user: discord.Member):
-    player_id = str(user.id)
-    if player_id not in player_stats:
-        await ctx.send(f"No stats found for {user.display_name}.")
+async def playerstats(ctx, username: str):
+    matches = find_player_by_name(username)
+    if not matches:
+        await ctx.send(f"No player found matching '{username}'.")
+        return
+    if len(matches) > 1:
+        names = ", ".join(r["username"] for _, r in matches)
+        await ctx.send(f"Multiple players found: {names}. Please be more specific.")
         return
 
-    p = player_stats[player_id]
-    wins = p["wins"]
-    losses = p["losses"]
+    player_id, record = matches[0]
+    wins = record["wins"]
+    losses = record["losses"]
     level_index = training_levels.get(player_id, 0)
     level_name = TRAINING_ROLES[level_index]
     win_rate = (wins / (wins + losses) * 100) if (wins + losses) > 0 else 0
 
     embed = discord.Embed(
-        title=f"📊 Stats for {user.display_name}",
+        title=f"📊 Stats for {record['username']}",
         color=0x3498db  # blue
     )
-    embed.add_field(name="Team", value=p["team"], inline=True)
+    embed.add_field(name="Team", value=record["team"], inline=True)
     embed.add_field(name="Level", value=level_name, inline=True)
     embed.add_field(name="Record", value=f"{wins}-{losses}", inline=True)
     embed.add_field(name="Win Rate", value=f"{win_rate:.1f}%", inline=True)
 
     await ctx.send(embed=embed)
-    save_data()
 
 # ------------- Players Command --------------------- #
 @commands.command(name="players")
