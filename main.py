@@ -1,6 +1,9 @@
 import discord
 from discord.ext import commands
 import os
+from dotenv import load_dotenv
+
+
 
 intents = discord.Intents.default()
 intents.members = True
@@ -18,6 +21,7 @@ async def setup():
     await bot.load_extension("commands")  # loads commands.py as a Cog
 
 # Use Discord token from Railway environment variables
+load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
 
 # Run bot with the async setup
