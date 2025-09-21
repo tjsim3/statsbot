@@ -355,3 +355,6 @@ async def setup(bot):
     bot.add_command(playerstats)
     bot.add_command(teams)
     bot.add_command(players)
+    bot.add_command(editplayer)
+    bot.add_command(deleteplayer)
+    bot.add_command(deleteteam)
