@@ -717,11 +717,8 @@ async def leadersHelp(ctx):
         name="👥 Player Commands",
         value=(
             "`%addplayer <user> [level] [team]` - Add one player\n"
-            "`%bulkaddplayers <team> <level> <user1> <user2>...` - Add multiple\n"
             "`%editplayer <user> [wins] [losses] [team]` - Edit player\n"
             "`%deleteplayer <user>` - Remove player\n"
-            "`%promote <user>` - Promote to next level\n"
-            "`%demote <user>` - Demote to previous level\n"
             "`%players` - List all players\n"
             "`%playerstats <user>` - View player stats"
         ),
