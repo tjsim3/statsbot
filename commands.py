@@ -692,7 +692,7 @@ async def exportrosters(ctx, team_name: str):
 
 # -------------- Leaders Help Command -------------------- #
 @commands.command(name="leadershelp")
-async def leaders_help(ctx):
+async def leadersHelp(ctx):
     """Show all available commands for team leaders"""
     embed = discord.Embed(
         title="📜 Team Management Commands",
@@ -754,3 +754,5 @@ async def setup(bot):
     bot.add_command(deleteplayer)
     bot.add_command(deleteteam)
     bot.add_command(rosters)
+    bot.add_command(exportrosters)
+    bot.add_command(leadersHelp)
